@@ -2,7 +2,7 @@
   "name": "Example data",
   "id": "example",
   "visible": true,
-  "width": 200,
+  "width": 100,
   "range": [[0,10],[1,20]],
   "ticks": [4,8],
   "scalename": ["linear","log"],
@@ -16,5 +16,8 @@
     "sp4": [[6,12]],
     "sp5": [[5,10]],
     "sp6": [[2,4]]
+  },
+  "colour": {
+    "sp3":"#23d711"
   }
 }

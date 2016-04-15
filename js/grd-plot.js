@@ -4,6 +4,12 @@ var Plot = function(id,parent,data,cell){
   this.data = data;
   this.data = data;
   this.cell = cell;
+  this.tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+      return "<strong>Taxon:</strong> <span style='color:#fe7001'>" + d.tax + "</span>";
+    })
   return this;
 }
 
@@ -15,6 +21,7 @@ Plot.prototype.addSvg = function(){
      .attr('viewBox', '0 0 ' + 100 + ' ' + 100)
      .attr('preserveAspectRatio', 'xMidYMid meet')
   this.svg = svg;
+  svg.call(this.tip);
   return this;
 }
 
@@ -51,17 +58,24 @@ Plot.prototype.addGrid = function(){
   return this;
 }
 
-Plot.prototype.plotData = function(){
-  var svg = this.svg;
+Plot.prototype.plotData = function(plottype){
+  // TODO - use plottype variable
+  // TODO - improve styling
+  var plot = this;
+  var svg = plot.svg;
   var g = svg.append('g').attr('class','grd-plot-data');
   var scale = this.scale;
   var data = this.data;
-  g.append("text").attr('transform','translate(0,20)').text(JSON.stringify(data));
+  var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
   var circles = g.selectAll('circle').data(data)
   circles.enter().append('circle');
   circles.attr('r',5)
          .attr('cx',function(d){return scale[0](d.x)})
-         .attr('cy',function(d){return 100 - scale[1](d.y)})
+         .attr('cy',function(d){if (scale[1]) return 100 - scale[1](d.y); return 50})
+         .attr('rel',function(d){return d.tax})
+         .style('fill',function(d){if (colours.hasOwnProperty(d.tax)) return colours[d.tax];})
+         .on('mouseover', plot.tip.show)
+         .on('mouseout', plot.tip.hide)
   circles.exit().remove();
   return this;
 }

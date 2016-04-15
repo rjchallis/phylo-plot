@@ -7,11 +7,13 @@
     <script type="text/javascript" charset="utf-8" src="js/grd-dataset.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/grd-cell.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/grd-plot.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <link rel="stylesheet" type="text/css" href="css/grd-style.css">
     <div id="plot"></div>
     <script>
         var grd = new Grid('main');
         grd.addDataset('json/example.json')
+        grd.addDataset('json/example2.json')
 
         // Combine - to be used across columns representing different data types
         Array.prototype.combine = function(arr2, callback) {
@@ -77,7 +79,9 @@
         }
 
         window.onload = function() {
-
+          setTimeout(function(){
+            grd.drawGrid('grid')
+          },1000)
         }
     </script>
     <div id="grid"></div>

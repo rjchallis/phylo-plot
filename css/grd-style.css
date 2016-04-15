@@ -2,6 +2,12 @@ body {
   font: 10px sans-serif;
 }
 
+div {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
 .grd-container {
   position:relative;
   background-color:#cccccc;
@@ -16,9 +22,9 @@ body {
 .grd-ds-container {
   position:relative;
   float:left;
-  width:200px;
+  display:table-cell;
+  width:100px;
   height:100%;
-  background-color:#ccccff;
 }
 
 .grd-ds-outer {
@@ -29,8 +35,8 @@ body {
 
 .grd-cell-container {
   width:100%;
-  margin: -2;
-  border:2px solid white;
+  margin: 0;
+  border:0px solid #555555;
   position:relative;
   pointer-events:none;
 }
@@ -39,7 +45,8 @@ body {
   position:absolute;
   height:100%;
   width:100%;
-  background-color:#cccccc;
+  border:2px solid #555555;
+  background-color:#ffffff;
   top:0px;
   left:0px;
   pointer-events:auto;
@@ -73,4 +80,37 @@ body {
   stroke: #dddddd;
   stroke-width: 0px;
   fill: #ffffff;
+}
+
+circle {
+  fill: #fe7001;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
 }

@@ -12,7 +12,7 @@ Cell.prototype.drawCell = function(parent,recurse){
   var ds = cell.dataset;
   var depth = ds.grid.tree[cell.id].depth;
   var grd_cell_container = parent.append('div').attr('rel',this.id).attr('class','grd-cell-container '+this.dataset.id+' '+this.id).style('height',this.rowspan*100+'px').style('z-index',depth);
-  var grd_cell_outer = grd_cell_container.append('div').attr('rel',this.id).attr('class','grd-cell-outer '+this.dataset.id+' '+this.id).style('background-color','#'+Math.floor(Math.random()*16777215).toString(16));
+  var grd_cell_outer = grd_cell_container.append('div').attr('rel',this.id).attr('class','grd-cell-outer '+this.dataset.id+' '+this.id);//.style('background-color','#'+Math.floor(Math.random()*16777215).toString(16));
   var grd_cell_nest = grd_cell_container.append('div').attr('rel',this.id).attr('class','grd-cell-nest '+this.dataset.id+' '+this.id).style('z-index',depth);
   if (recurse){
     var children = ds.grid.tree[cell.id].children;

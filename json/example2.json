@@ -1,0 +1,23 @@
+{
+  "name": "Example data2",
+  "id": "example2",
+  "visible": true,
+  "width": 100,
+  "range": [[0,100]],
+  "ticks": [2],
+  "scalename": ["linear"],
+  "aggregate": "list",
+  "plotvars": [0],
+  "plottype": [1],
+  "data": {
+    "sp1": [30,40,60],
+    "sp2": [20,30,50],
+    "sp3": [35,43,80],
+    "sp4": [29,66,84,99],
+    "sp5": [12,18,32],
+    "sp6": [6,15,21]
+  },
+  "colour": {
+    "sp3":"#23d711"
+  }
+}

@@ -72,7 +72,6 @@ Grid.prototype.addDataset = function(url){
     grid.height = 600;
     grid.width = 200;
     console.log(grid)
-    grd.drawGrid('grid')
   })
   return this;
 }
