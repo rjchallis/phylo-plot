@@ -1,0 +1,86 @@
+<html>
+
+<body>
+    <script type="text/javascript" charset="utf-8" src="js/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/d3.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/grd-grid.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/grd-dataset.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/grd-cell.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/grd-plot.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/grd-style.css">
+    <div id="plot"></div>
+    <script>
+        var grd = new Grid('main');
+        grd.addDataset('json/example.json')
+
+        // Combine - to be used across columns representing different data types
+        Array.prototype.combine = function(arr2, callback) {
+            if (typeof callback === "function") {
+                var arr = this;
+                arr = callback(arr, arr2);
+                return arr;
+            }
+        }
+
+        var conditional_wrapper = function(a, b, operation) {
+            if (a.length == b.length) {
+                a.forEach(function(val, index) {
+                    a[index] = operation(val, b[index]);
+                });
+                return a;
+            } else if (a.length == 1) {
+                var c = [];
+                b.forEach(function(val, index) {
+                    c[index] = operation(a[0], val);
+                });
+                return c;
+            } else if (b.length == 1) {
+                a.forEach(function(val, index) {
+                    a[index] = operation(val, b[0]);
+                });
+                return a;
+            }
+        }
+        var concat = function(a, b) {
+            return a.concat(b)
+        }
+        var add = function(a, b) {
+            return conditional_wrapper(a, b, function(c, d) {
+                return c + d;
+            })
+        }
+        var subtract = function(a, b) {
+            return conditional_wrapper(a, b, function(c, d) {
+                return c - d;
+            })
+        }
+        var multiply = function(a, b) {
+            return conditional_wrapper(a, b, function(c, d) {
+                return c * d;
+            })
+        }
+        var divide = function(a, b) {
+            return conditional_wrapper(a, b, function(c, d) {
+                return c / d;
+            })
+        }
+        var vector = function(a, b) {
+            return conditional_wrapper(a, b, function(c, d) {
+                if (typeof c === "object") {
+                    return c.concat(d);
+                } else if (typeof d === "object") {
+                    var c = [c];
+                    return c.concat(d);
+                }
+                return [c, d];
+            })
+        }
+
+        window.onload = function() {
+
+        }
+    </script>
+    <div id="grid"></div>
+</body>
+
+</html>

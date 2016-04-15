@@ -1,0 +1,76 @@
+body {
+  font: 10px sans-serif;
+}
+
+.grd-container {
+  position:relative;
+  background-color:#cccccc;
+}
+
+.grd-outer {
+  position:relative;
+  height:100%;
+  width:100%;
+}
+
+.grd-ds-container {
+  position:relative;
+  float:left;
+  width:200px;
+  height:100%;
+  background-color:#ccccff;
+}
+
+.grd-ds-outer {
+  position:absolute;
+  height:100%;
+  width:100%;
+}
+
+.grd-cell-container {
+  width:100%;
+  margin: -2;
+  border:2px solid white;
+  position:relative;
+  pointer-events:none;
+}
+
+.grd-cell-outer {
+  position:absolute;
+  height:100%;
+  width:100%;
+  background-color:#cccccc;
+  top:0px;
+  left:0px;
+  pointer-events:auto;
+}
+
+.grd-cell-nest {
+  position:absolute;
+  top:0px;
+  left:0px;
+  height:100%;
+  width:100%;
+  pointer-events:none;
+}
+
+.grd-cell-unclickable {
+  pointer-events:none;
+}
+
+.grd-cell-hidden {
+  opacity:0;
+  pointer-events:none;
+}
+
+.grd-plot-ticks line {
+  stroke: #dddddd;
+  stroke-width: 1px;
+  fill: #ffffff;
+}
+
+.grd-plot-ticks rect {
+  stroke: #dddddd;
+  stroke-width: 0px;
+  fill: #ffffff;
+}
