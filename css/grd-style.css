@@ -86,6 +86,12 @@ circle {
   fill: #fe7001;
 }
 
+.grd-tree-line {
+  stroke: black;
+  stroke-width: 1px;
+  fill: #ffffff;
+}
+
 .d3-tip {
   line-height: 1;
   font-weight: bold;

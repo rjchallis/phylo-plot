@@ -3,11 +3,12 @@
 <body>
     <script type="text/javascript" charset="utf-8" src="js/jquery.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/d3.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/grd-tree.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/grd-grid.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/grd-dataset.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/grd-cell.js"></script>
     <script type="text/javascript" charset="utf-8" src="js/grd-plot.js"></script>
-    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <!--script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script-->
     <link rel="stylesheet" type="text/css" href="css/grd-style.css">
     <div id="plot"></div>
     <script>
@@ -79,12 +80,20 @@
         }
 
         window.onload = function() {
-          setTimeout(function(){
-            grd.drawGrid('grid')
-          },1000)
+          var newick = '(a:2,(b:1,(c:2,(d:1,e:2)label:1)label2:2)another:3)root';
+          newick = '(Plutella_xylostella_DBM_FJ_v1x1,((Plodia_interpunctella_v1,Amyelois_transitella_v1),((Bombyx_mori_ASM15162v1,Manduca_sexta_Msex_1),(Operophtera_brumata_v1,((Lerema_accius_v1x1,(Danaus_plexippus_v3,(Bicyclus_anynana_v1x2,(Heliconius_melpomene_Hmel2,Melitaea_cinxia)))),(Papilio_glaucus_v1x1,(Papilio_polytes_Ppol_1,(Papilio_xuthus_Pxut_1,Papilio_machaon_Pap_ma_1))))))));';
+          console.log(newick);
+          var tree = new Tree(newick);
+          tree.layoutNodes();
+          console.log(JSON.stringify(tree))
+          tree.drawTree();
+          //setTimeout(function(){
+          //  grd.drawGrid('grid')
+          //},1000)
         }
     </script>
     <div id="grid"></div>
+    <div id="tree"></div>
 </body>
 
 </html>
