@@ -14,7 +14,6 @@ var Tree = function (newick){
     while (match = newick.match(regex)){
       i++;
       newick = newick.replace(regex,'NODE'+i)
-      console.log(newick)
       var nodes = match[1].split(',')
       children['NODE'+i] = [];
       var label = match[2] ? match[2] : null;
@@ -25,7 +24,7 @@ var Tree = function (newick){
         tree[node] = { "id":     node,
                         "brlen":  brlen,
                         "open":  true,
-                        "ancestor": 'NODE'+i }
+                        "parent": 'NODE'+i }
         children['NODE'+i].push(node);
         if (node.match('NODE')){
           tree[node].children = children[node]
@@ -40,7 +39,7 @@ var Tree = function (newick){
       })
     }
     children['NODE'+i].forEach(function(child){
-      tree[child].ancestor = 'root'
+      tree[child].parent = 'root'
     })
     tree['root'] = { "id":     'root',
                      "open":  true,
@@ -82,8 +81,6 @@ Tree.prototype.layoutNodes = function(width,height){
   //tree.taxorder.forEach(function(taxon,index){
   function layoutNode(taxon){
     if (!tree[taxon].hasOwnProperty('children')){
-      console.log(taxon)
-      console.log(tree[taxon])
       nodes[taxon] = true;
       tree[taxon].y = offset.y;
       tree[taxon].x2 = offset.x + spacing.x;
@@ -91,11 +88,7 @@ Tree.prototype.layoutNodes = function(width,height){
       tree[taxon].y1 = offset.y;
       tree[taxon].y2 = offset.y;
       if (tree[taxon].open){
-        console.log('open')
         offset.y += spacing.y;
-      }
-      else {
-        console.log('closed')
       }
     }
     else {
@@ -127,10 +120,10 @@ Tree.prototype.layoutNodes = function(width,height){
       tree[taxon].x1 = xx
       tree[taxon].x2 = xx + spacing.x
     }
-    if (tree[taxon].hasOwnProperty('ancestor')){
-      var ancestor = tree[taxon].ancestor;
-      if (!nodes[ancestor]){
-        layoutNode(ancestor)
+    if (tree[taxon].hasOwnProperty('parent')){
+      var parent = tree[taxon].parent;
+      if (!nodes[parent]){
+        layoutNode(parent)
       }
     }
     return true;
@@ -141,6 +134,84 @@ Tree.prototype.layoutNodes = function(width,height){
   this.spacing = spacing
   return this;
 }
+
+Tree.prototype.collapseNode = function(ancestor){
+  // TODO - walk through the tree to determine x and y positions of each node
+  var t = this;
+  var tree = t.nodes;
+
+  var descendants = tree[ancestor].descendants;
+  var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
+  var tax = tree[tree.taxorder[index]]
+  var y = tax.y
+  var offset = -t.spacing.y
+  descendants.forEach(function(desc){
+    tree[desc].y = y
+    tree[desc].y1 = y
+    tree[desc].y2 = y
+    offset += t.spacing.y
+  })
+
+
+  for (var i = index + descendants.length; i < tree.taxorder.length; i++){
+    var tax = tree[tree.taxorder[i]]
+    tax.y -= offset
+    tax.y1 -= offset
+    tax.y2 -= offset
+  }
+
+  var nodes = {};
+  var taxon = tree.taxorder[0]
+  layoutNode(taxon);
+
+
+  function layoutNode(taxon){
+    if (!tree[taxon].hasOwnProperty('children')){
+      nodes[taxon] = true;
+
+    }
+    else {
+      tree[taxon].descendants.forEach(function(descendant){
+        if (!nodes[descendant]){
+          layoutNode(descendant)
+        }
+      })
+      var y = 0;
+      var miny = 99999999;
+      var maxy = -1
+      var maxx = -1
+      var count = tree[taxon].children.length;
+      for (var i = 0; i < count; i++){
+        var yy = tree[tree[taxon].children[i]].y;
+        var xx = tree[tree[taxon].children[i]].x2;
+        y += yy;
+        miny = yy < miny ? yy : miny;
+        maxy = yy > maxy ? yy : maxy;
+        maxx = xx > maxx ? xx : maxx;
+      }
+      for (var i = 0; i < count; i++){
+        tree[tree[taxon].children[i]].x2 = maxx;
+      }
+      y = y / count;
+      tree[taxon].y = y
+      tree[taxon].y1 = miny
+      tree[taxon].y2 = maxy
+      tree[taxon].x1 = xx
+      tree[taxon].x2 = xx + t.spacing.x
+    }
+    if (tree[taxon].hasOwnProperty('parent')){
+      var parent = tree[taxon].parent;
+      if (!nodes[parent]){
+        layoutNode(parent)
+      }
+    }
+    return true;
+  }
+
+
+  return this;
+}
+
 
 Tree.prototype.drawTree = function(){
   var data = [];
@@ -160,7 +231,6 @@ Tree.prototype.drawTree = function(){
        .attr('height', '100%')
        .attr('viewBox', '0 0 ' + tree.width + ' ' + tree.height)
        .attr('preserveAspectRatio', 'xMidYMid meet')
-    console.log('here')
     group = svg.append('g');
     tree.svg = svg;
     tree.treegroup = group;
@@ -190,10 +260,7 @@ Tree.prototype.drawTree = function(){
         .attr('cy', function(d){return tree.height - d.y})
         .attr('r', function(d){return tree.spacing.y/8})
         .on('click',function(d){
-          tree.nodes[d.id].descendants.forEach(function(tax){
-            tree.nodes[tax].open = false;
-          })
-          tree.layoutNodes().drawTree()
+            tree.collapseNode(d.id).drawTree()
         })
   groups.exit().remove();
   return this;
