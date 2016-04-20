@@ -71,7 +71,6 @@ Grid.prototype.addDataset = function(url){
     grid.order.push(ds.id);
     grid.height = 600;
     grid.width = 200;
-    console.log(grid)
   })
   return this;
 }

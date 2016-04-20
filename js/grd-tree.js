@@ -2,6 +2,8 @@ var Tree = function (newick){
   this.newick = newick;
   var tree = parse_newick(newick);
   this.nodes = tree;
+  this.nodecount = tree.taxorder.length;
+  this.tipcount = tree.taxorder.length;
   return this;
 
 
@@ -136,42 +138,58 @@ Tree.prototype.layoutNodes = function(width,height){
 
 Tree.prototype.hideNode = function(node){
   var t = this;
-  t.nodes[node].visible = false;
+  var count = 0;
   if (t.nodes[node].hasOwnProperty('children')){
     var children = t.nodes[node].children;
      children.forEach(function(child){
-      t.hideNode(child)
+      count += t.hideNode(child)
     })
+    if (t.nodes[node].collapsed) {
+      count ++;
+      t.nodecount--;
+    }
   }
-  return this;
+  else if (t.nodes[node].visible) {
+    t.nodecount--;
+  }
+  t.nodes[node].visible = false;
+  t.nodes[node].collapsed = false;
+  return count;
 }
 
 Tree.prototype.collapseNode = function(ancestor){
   // TODO - walk through the tree to determine x and y positions of each node
   var t = this;
   var tree = t.nodes;
+  t.nodecount++;
   tree[ancestor].collapsed = true;
   var descendants = tree[ancestor].descendants;
   var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
   var tax = tree[tree.taxorder[index]]
   var y = tax.y
-  var offset = -t.spacing.y
+  var offset = 0
   descendants.forEach(function(desc){
     tree[desc].y = y
     tree[desc].y1 = y
     tree[desc].y2 = y
-    offset += t.spacing.y
+    if (tree[desc].visible){
+      offset += t.spacing.y
+    }
   })
+
+  var precollapsed = 0;
   var children = tree[ancestor].children;
   children.forEach(function(child){
-    t.hideNode(child)
+    precollapsed += t.hideNode(child)
   })
+
+  offset += precollapsed * t.spacing.y
 
   for (var i = index + descendants.length; i < tree.taxorder.length; i++){
     var tax = tree[tree.taxorder[i]]
-    tax.y -= offset
-    tax.y1 -= offset
-    tax.y2 -= offset
+    tax.y -= offset - t.spacing.y
+    tax.y1 -= offset - t.spacing.y
+    tax.y2 -= offset - t.spacing.y
   }
 
   var nodes = {};
@@ -229,14 +247,20 @@ Tree.prototype.collapseNode = function(ancestor){
 
 Tree.prototype.showNode = function(node){
   var t = this;
-  t.nodes[node].visible = true;
-  t.nodes[node].collapsed = false;
   if (t.nodes[node].hasOwnProperty('children')){
     var children = t.nodes[node].children;
      children.forEach(function(child){
       t.showNode(child)
     })
+    if (t.nodes[node].collapsed) {
+      t.nodecount--;
+    }
   }
+  else if (!t.nodes[node].visible) {
+    t.nodecount++;
+  }
+  t.nodes[node].visible = true;
+  t.nodes[node].collapsed = false;
   return this;
 }
 
@@ -244,6 +268,7 @@ Tree.prototype.expandNode = function(ancestor){
   // TODO - walk through the tree to determine x and y positions of each node
   var t = this;
   var tree = t.nodes;
+  t.nodecount--;
   tree[ancestor].collapsed = false
   var descendants = tree[ancestor].descendants;
   var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
@@ -326,6 +351,7 @@ Tree.prototype.expandNode = function(ancestor){
 Tree.prototype.drawTree = function(){
   var data = [];
   var tree = this;
+
   Object.keys(tree.nodes).forEach(function(key){
     if (key != 'taxorder') data.push(tree.nodes[key])
   })
@@ -338,13 +364,16 @@ Tree.prototype.drawTree = function(){
   else {
     svg = d3.select('#tree').append('svg');
     svg.attr('width', '100%')
-       .attr('height', '100%')
-       .attr('viewBox', '0 0 ' + tree.width + ' ' + tree.height)
        .attr('preserveAspectRatio', 'xMidYMid meet')
-    group = svg.append('g');
+    group = svg.append('g')
+               .attr('transform','translate(0,'+tree.spacing.y/2+')');
     tree.svg = svg;
     tree.treegroup = group;
   }
+  var new_height = (tree.nodecount) * tree.spacing.y
+  var new_start = (tree.tipcount - tree.nodecount) * tree.spacing.y + tree.spacing.y *1.5
+  svg.transition().duration(500).attr('viewBox', '0 ' + new_start + ' ' + tree.width + ' ' + new_height)
+                                .attr('height', new_height)
   var groups = group.selectAll('g.grd-tree-node').data(data);
   var node_g = groups.enter()
                      .append('g')
@@ -387,11 +416,13 @@ Tree.prototype.drawTree = function(){
         .style('fill',function(d){if (d.collapsed){return '#999999'} return '#333333'})
         .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   handles.on('click',function(d){
-            if (!d.collapsed){
-              tree.collapseNode(d.id).drawTree()
-            }
-            else {
-              tree.expandNode(d.id).drawTree()
+            if (d.hasOwnProperty('children')){
+              if (!d.collapsed){
+                tree.collapseNode(d.id).drawTree()
+              }
+              else {
+                tree.expandNode(d.id).drawTree()
+              }
             }
         })
   groups.exit().remove();
