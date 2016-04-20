@@ -23,7 +23,7 @@ var Tree = function (newick){
         brlen = brlen ? brlen : 1
         tree[node] = { "id":     node,
                         "brlen":  brlen,
-                        "open":  true,
+                        "visible":  true,
                         "parent": 'NODE'+i }
         children['NODE'+i].push(node);
         if (node.match('NODE')){
@@ -42,7 +42,7 @@ var Tree = function (newick){
       tree[child].parent = 'root'
     })
     tree['root'] = { "id":     'root',
-                     "open":  true,
+                     "visible":  true,
                       "label":  'root'
                      }
     tree['root'].children = children['NODE'+i]
@@ -87,9 +87,8 @@ Tree.prototype.layoutNodes = function(width,height){
       tree[taxon].x1 = offset.x;
       tree[taxon].y1 = offset.y;
       tree[taxon].y2 = offset.y;
-      if (tree[taxon].open){
-        offset.y += spacing.y;
-      }
+      tree[taxon].leaf = true;
+      offset.y += spacing.y;
     }
     else {
       tree[taxon].descendants.forEach(function(descendant){
@@ -135,11 +134,23 @@ Tree.prototype.layoutNodes = function(width,height){
   return this;
 }
 
+Tree.prototype.hideNode = function(node){
+  var t = this;
+  t.nodes[node].visible = false;
+  if (t.nodes[node].hasOwnProperty('children')){
+    var children = t.nodes[node].children;
+     children.forEach(function(child){
+      t.hideNode(child)
+    })
+  }
+  return this;
+}
+
 Tree.prototype.collapseNode = function(ancestor){
   // TODO - walk through the tree to determine x and y positions of each node
   var t = this;
   var tree = t.nodes;
-
+  tree[ancestor].collapsed = true;
   var descendants = tree[ancestor].descendants;
   var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
   var tax = tree[tree.taxorder[index]]
@@ -151,13 +162,112 @@ Tree.prototype.collapseNode = function(ancestor){
     tree[desc].y2 = y
     offset += t.spacing.y
   })
-
+  var children = tree[ancestor].children;
+  children.forEach(function(child){
+    t.hideNode(child)
+  })
 
   for (var i = index + descendants.length; i < tree.taxorder.length; i++){
     var tax = tree[tree.taxorder[i]]
     tax.y -= offset
     tax.y1 -= offset
     tax.y2 -= offset
+  }
+
+  var nodes = {};
+  var taxon = tree.taxorder[0]
+  layoutNode(taxon);
+
+
+  function layoutNode(taxon){
+    if (!tree[taxon].hasOwnProperty('children')){
+      nodes[taxon] = true;
+
+    }
+    else {
+      tree[taxon].descendants.forEach(function(descendant){
+        if (!nodes[descendant]){
+          layoutNode(descendant)
+        }
+      })
+      var y = 0;
+      var miny = 99999999;
+      var maxy = -1
+      var maxx = -1
+      var count = tree[taxon].children.length;
+      for (var i = 0; i < count; i++){
+        var yy = tree[tree[taxon].children[i]].y;
+        var xx = tree[tree[taxon].children[i]].x2;
+        y += yy;
+        miny = yy < miny ? yy : miny;
+        maxy = yy > maxy ? yy : maxy;
+        maxx = xx > maxx ? xx : maxx;
+      }
+      for (var i = 0; i < count; i++){
+        tree[tree[taxon].children[i]].x2 = maxx;
+      }
+      y = y / count;
+      tree[taxon].y = y
+      tree[taxon].y1 = miny
+      tree[taxon].y2 = maxy
+      tree[taxon].x1 = xx
+      tree[taxon].x2 = xx + t.spacing.x
+    }
+    if (tree[taxon].hasOwnProperty('parent')){
+      var parent = tree[taxon].parent;
+      if (!nodes[parent]){
+        layoutNode(parent)
+      }
+    }
+    return true;
+  }
+
+
+  return this;
+}
+
+
+Tree.prototype.showNode = function(node){
+  var t = this;
+  t.nodes[node].visible = true;
+  t.nodes[node].collapsed = false;
+  if (t.nodes[node].hasOwnProperty('children')){
+    var children = t.nodes[node].children;
+     children.forEach(function(child){
+      t.showNode(child)
+    })
+  }
+  return this;
+}
+
+Tree.prototype.expandNode = function(ancestor){
+  // TODO - walk through the tree to determine x and y positions of each node
+  var t = this;
+  var tree = t.nodes;
+  tree[ancestor].collapsed = false
+  var descendants = tree[ancestor].descendants;
+  var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
+  var tax = tree[tree.taxorder[index]]
+  var y = tax.y
+  var offset = 0
+  descendants.forEach(function(desc,index){
+    if (index > 0){
+      offset += t.spacing.y
+      tree[desc].y += offset
+      tree[desc].y1 += offset
+      tree[desc].y2 += offset
+    }
+  })
+  var children = tree[ancestor].children;
+  children.forEach(function(child){
+    t.showNode(child)
+  })
+
+  for (var i = index+descendants.length; i < tree.taxorder.length; i++){
+    var tax = tree[tree.taxorder[i]]
+    tax.y += offset
+    tax.y1 += offset
+    tax.y2 += offset
   }
 
   var nodes = {};
@@ -240,27 +350,49 @@ Tree.prototype.drawTree = function(){
                      .append('g')
                      .attr('class','grd-tree-node');
   node_g.append('line')
-        .attr('class','grd-tree-line vert')
+        .attr('class','grd-tree-line grd-tree-vert')
   node_g.append('line')
-        .attr('class','grd-tree-line horiz')
+        .attr('class','grd-tree-line grd-tree-horiz')
   node_g.append('circle')
-        .attr('class','grd-tree-line handle')
-  groups.selectAll('.grd-tree-line.vert')
+        .attr('class','grd-tree-line grd-tree-handle')
+  var vert = groups.selectAll('.grd-tree-line.grd-tree-vert')
+  //vert.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
+
+  vert.style('visibility',function(d){if (d.visible){return 'visible'}})
+  vert.transition().duration(500)
         .attr('x1', function(d){return tree.width - d.x1})
         .attr('x2', function(d){return tree.width - d.x1})
         .attr('y1', function(d){return tree.height - d.y1})
         .attr('y2', function(d){return tree.height - d.y2})
-  groups.selectAll('.grd-tree-line.horiz')
+        .style('opacity',function(d){if (d.visible){return 1} return 0})
+        .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
+  var horiz = groups.selectAll('.grd-tree-line.grd-tree-horiz')
+//  horiz.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
+  horiz.style('visibility',function(d){if (d.visible){return 'visible'}})
+  horiz.transition().duration(500)
         .attr('x1', function(d){return tree.width - d.x1})
         .attr('x2', function(d){return tree.width - d.x2})
         .attr('y1', function(d){return tree.height - d.y})
         .attr('y2', function(d){return tree.height - d.y})
-  groups.selectAll('.grd-tree-line.handle')
+        .style('opacity',function(d){if (d.visible){return 1} return 0})
+        .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
+  var handles = groups.selectAll('.grd-tree-line.grd-tree-handle')
+//  handles.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
+  handles.style('visibility',function(d){if (d.visible){return 'visible'}})
+  handles.transition().duration(500)
         .attr('cx', function(d){return tree.width - d.x1})
         .attr('cy', function(d){return tree.height - d.y})
         .attr('r', function(d){return tree.spacing.y/8})
-        .on('click',function(d){
-            tree.collapseNode(d.id).drawTree()
+        .style('opacity',function(d){if (d.visible){return 1} return 0})
+        .style('fill',function(d){if (d.collapsed){return '#999999'} return '#333333'})
+        .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
+  handles.on('click',function(d){
+            if (!d.collapsed){
+              tree.collapseNode(d.id).drawTree()
+            }
+            else {
+              tree.expandNode(d.id).drawTree()
+            }
         })
   groups.exit().remove();
   return this;
