@@ -69,7 +69,7 @@ Plot.prototype.plotData = function(plottype){
   var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
   var circles = g.selectAll('circle').data(data)
   circles.enter().append('circle');
-  circles.attr('r',5)
+  circles.attr('r',6)
          .attr('cx',function(d){return scale[0](d.x)})
          .attr('cy',function(d){if (scale[1]) return 100 - scale[1](d.y); return 50})
          .attr('rel',function(d){return d.tax})

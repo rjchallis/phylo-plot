@@ -11,7 +11,7 @@ Cell.prototype.drawCell = function(parent,recurse){
   var cell = this;
   var ds = cell.dataset;
   var depth = ds.grid.tree[cell.id].depth;
-  var grd_cell_container = parent.append('div').attr('rel',this.id).attr('class','grd-cell-container '+this.dataset.id+' '+this.id).style('height',this.rowspan*100+'px').style('z-index',depth);
+  var grd_cell_container = parent.append('div').attr('rel',this.id).attr('class','grd-cell-container '+this.dataset.id+' '+this.id).style('height',this.rowspan*50+'px').style('z-index',depth);
   var grd_cell_outer = grd_cell_container.append('div').attr('rel',this.id).attr('class','grd-cell-outer '+this.dataset.id+' '+this.id);//.style('background-color','#'+Math.floor(Math.random()*16777215).toString(16));
   var grd_cell_nest = grd_cell_container.append('div').attr('rel',this.id).attr('class','grd-cell-nest '+this.dataset.id+' '+this.id).style('z-index',depth);
   if (recurse){
@@ -87,41 +87,69 @@ Cell.prototype.fillCell = function(){
   return this;
 }
 
-Cell.prototype.collapseCell = function(){
+Cell.prototype.collapseCell = function(rowspan){
   var cell = this;
   var ds = cell.dataset;
   var parent = ds.cells[cell.parent];
   parent.outer.classed('grd-cell-unclickable',false)
-  parent.hideChildren(1);
+  parent.container.transition()
+              .duration(500)
+              .style('height',rowspan*50+'px')
+  parent.hideChildren(1,rowspan*50);
   return this;
 }
 
-Cell.prototype.hideChildren = function(recurse){
+Cell.prototype.hideChildren = function(recurse,height){
   var cell = this;
   var ds = cell.dataset;
   var children = ds.grid.tree[cell.id].children;
-  if (children && children.length > 0){
-    children.forEach(function(child){
-      var current = ds.cells[child];
-      current.container.classed('grd-cell-hidden',true);
-      current.outer.classed('grd-cell-unclickable',true);
-      if (recurse){
-        current.hideChildren(recurse);
-      }
-    });
+  if (children){
+    var descendants = ds.grid.tree[cell.id].descendants;
+    var count = descendants.length;
+    if (count > 0){
+      children.forEach(function(child){
+        var current = ds.cells[child];
+        var desc = ds.grid.tree[current.id].descendants;
+        var current_count = desc ? desc : 1;
+        current.container.transition()
+                         .duration(500)
+                         .style('opacity',0)
+                         .style('height',height/count*current_count)
+        setTimeout(function(){
+          current.container.classed('grd-cell-hidden',true);
+          current.outer.classed('grd-cell-unclickable',true);
+        },500)
+        if (recurse){
+          current.hideChildren(recurse,height/count*current_count);
+        }
+      });
+    }
   }
 }
 
-Cell.prototype.splitCell = function(){
+Cell.prototype.splitCell = function(rowspan){
   var cell = this;
+  cell.container.transition()
+                   .duration(500)
+                   .style('height',cell.rowspan*50)
   var ds = cell.dataset;
   var children = ds.grid.tree[cell.id].children;
-  if (children && children.length > 0){
-    cell.outer.classed('grd-cell-unclickable',true)
-    children.forEach(function(child){
-      ds.cells[child].container.classed('grd-cell-hidden',false);
-      ds.cells[child].outer.classed('grd-cell-unclickable',false);
-    });
+  if (children){
+    var count = children.length
+    if (count > 0){
+      cell.outer.classed('grd-cell-unclickable',true)
+      children.forEach(function(child){
+        var current = ds.cells[child];
+        current.container.transition()
+                         .duration(500)
+                         .style('opacity',1)
+                         .style('height',current.rowspan*50)
+        setTimeout(function(){
+          current.container.classed('grd-cell-hidden',false);
+          current.outer.classed('grd-cell-unclickable',false);
+        },500)
+      });
+    }
   }
   return this;
 }

@@ -1,7 +1,9 @@
-var Tree = function (newick){
+var Tree = function (grid,newick){
   this.newick = newick;
+  this.grid = grid;
   var tree = parse_newick(newick);
   this.nodes = tree;
+  this.taxorder = tree.taxorder;
   this.nodecount = tree.taxorder.length;
   this.tipcount = tree.taxorder.length;
   return this;
@@ -72,8 +74,8 @@ var Tree = function (newick){
 Tree.prototype.layoutNodes = function(width,height){
   // TODO - walk through the tree to determine x and y positions of each node
   var tree = this.nodes;
-  var offset = {x:50,y:50};
-  var spacing = {x:50,y:100}
+  var offset = {x:0,y:25};
+  var spacing = {x:25,y:50}
   width = width ? width : 300;
   height = height ? height : spacing.y*tree.taxorder.length-1 + 2*offset.y;
   width = width ? width : height / 2;
@@ -157,11 +159,18 @@ Tree.prototype.hideNode = function(node){
   return count;
 }
 
+
 Tree.prototype.collapseNode = function(ancestor){
   // TODO - walk through the tree to determine x and y positions of each node
   var t = this;
   var tree = t.nodes;
   t.nodecount++;
+  var datasets = t.grid.order;
+  datasets.forEach(function(ds){
+    ds = t.grid.datasets[ds]
+    var cell = ds.cells[tree[ancestor].children[0]];
+    cell.collapseCell(1)
+  })
   tree[ancestor].collapsed = true;
   var descendants = tree[ancestor].descendants;
   var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
@@ -269,6 +278,12 @@ Tree.prototype.expandNode = function(ancestor){
   var t = this;
   var tree = t.nodes;
   t.nodecount--;
+  var datasets = t.grid.order;
+  datasets.forEach(function(ds){
+    ds = t.grid.datasets[ds]
+    var cell = ds.cells[ancestor];
+    cell.splitCell(1)
+  })
   tree[ancestor].collapsed = false
   var descendants = tree[ancestor].descendants;
   var index = tree.taxorder.indexOf(tree[ancestor].descendants[0])
@@ -348,9 +363,11 @@ Tree.prototype.expandNode = function(ancestor){
 }
 
 
-Tree.prototype.drawTree = function(){
+Tree.prototype.drawTree = function(parent){
   var data = [];
   var tree = this;
+  this.duration = 500;
+  var duration = tree.duration;
 
   Object.keys(tree.nodes).forEach(function(key){
     if (key != 'taxorder') data.push(tree.nodes[key])
@@ -362,17 +379,19 @@ Tree.prototype.drawTree = function(){
     group = tree.treegroup;
   }
   else {
-    svg = d3.select('#tree').append('svg');
-    svg.attr('width', '100%')
+    svg = parent.append('svg');
+    svg.attr('width', tree.width)
        .attr('preserveAspectRatio', 'xMidYMid meet')
+       .style('float', 'right')
     group = svg.append('g')
                .attr('transform','translate(0,'+tree.spacing.y/2+')');
     tree.svg = svg;
     tree.treegroup = group;
   }
   var new_height = (tree.nodecount) * tree.spacing.y
-  var new_start = (tree.tipcount - tree.nodecount) * tree.spacing.y + tree.spacing.y *1.5
-  svg.transition().duration(500).attr('viewBox', '0 ' + new_start + ' ' + tree.width + ' ' + new_height)
+  var new_start = (tree.tipcount - tree.nodecount) * tree.spacing.y + tree.spacing.y /2
+  new_start = tree.spacing.y /2
+  svg.transition().duration(duration).attr('viewBox', '0 ' + new_start + ' ' + tree.width + ' ' + new_height)
                                 .attr('height', new_height)
   var groups = group.selectAll('g.grd-tree-node').data(data);
   var node_g = groups.enter()
@@ -388,32 +407,32 @@ Tree.prototype.drawTree = function(){
   //vert.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
 
   vert.style('visibility',function(d){if (d.visible){return 'visible'}})
-  vert.transition().duration(500)
+  vert.transition().duration(duration)
         .attr('x1', function(d){return tree.width - d.x1})
         .attr('x2', function(d){return tree.width - d.x1})
-        .attr('y1', function(d){return tree.height - d.y1})
-        .attr('y2', function(d){return tree.height - d.y2})
+        .attr('y1', function(d){return d.y1})
+        .attr('y2', function(d){return d.y2})
         .style('opacity',function(d){if (d.visible){return 1} return 0})
         .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   var horiz = groups.selectAll('.grd-tree-line.grd-tree-horiz')
 //  horiz.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   horiz.style('visibility',function(d){if (d.visible){return 'visible'}})
-  horiz.transition().duration(500)
+  horiz.transition().duration(duration)
         .attr('x1', function(d){return tree.width - d.x1})
         .attr('x2', function(d){return tree.width - d.x2})
-        .attr('y1', function(d){return tree.height - d.y})
-        .attr('y2', function(d){return tree.height - d.y})
+        .attr('y1', function(d){return d.y})
+        .attr('y2', function(d){return d.y})
         .style('opacity',function(d){if (d.visible){return 1} return 0})
         .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   var handles = groups.selectAll('.grd-tree-line.grd-tree-handle')
 //  handles.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   handles.style('visibility',function(d){if (d.visible){return 'visible'}})
-  handles.transition().duration(500)
+  handles.transition().duration(duration)
         .attr('cx', function(d){return tree.width - d.x1})
-        .attr('cy', function(d){return tree.height - d.y})
+        .attr('cy', function(d){return d.y})
         .attr('r', function(d){return tree.spacing.y/8})
         .style('opacity',function(d){if (d.visible){return 1} return 0})
-        .style('fill',function(d){if (d.collapsed){return '#999999'} return '#333333'})
+        .style('fill',function(d){if (d.collapsed){return '#ffffff'} return '#000000'})
         .transition().duration(0).style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   handles.on('click',function(d){
             if (d.hasOwnProperty('children')){
