@@ -96,6 +96,25 @@ Cell.prototype.collapseCell = function(rowspan){
               .duration(500)
               .style('height',rowspan*50+'px')
   parent.hideChildren(1,rowspan*50);
+  if (rowspan == 1){
+    var factor = parent.rowspan - rowspan;
+    parent.shortenParent(factor,1);
+  }
+  return this;
+}
+
+Cell.prototype.shortenParent = function(factor,recurse){
+  var cell = this;
+  var ds = cell.dataset;
+  if (cell.hasOwnProperty('parent') && cell.parent){
+    var parent = ds.cells[cell.parent];
+    parent.container.transition()
+                .duration(500)
+                .style('height',(parent.rowspan - factor)*50+'px')
+    if (recurse){
+      parent.shortenParent(factor,1);
+    }
+  }
   return this;
 }
 
@@ -127,27 +146,39 @@ Cell.prototype.hideChildren = function(recurse,height){
   }
 }
 
-Cell.prototype.splitCell = function(rowspan){
+Cell.prototype.splitCell = function(recurse,depth){
   var cell = this;
-  cell.container.transition()
-                   .duration(500)
-                   .style('height',cell.rowspan*50)
   var ds = cell.dataset;
   var children = ds.grid.tree[cell.id].children;
+  var delay = 500;
+  var depth = depth ? depth : 0;
   if (children){
+    cell.container.transition()
+                     .duration(function(){if (depth > 0){ return 100; } return delay; })
+                     .style('height',cell.rowspan*50)
+    console.log('splitting '+cell.id)
     var count = children.length
     if (count > 0){
       cell.outer.classed('grd-cell-unclickable',true)
       children.forEach(function(child){
         var current = ds.cells[child];
+        console.log(current.id+' '+current.rowspan)
         current.container.transition()
-                         .duration(500)
+                         .duration(function(){if (depth > 0){ return 100; } return delay; })
                          .style('opacity',1)
                          .style('height',current.rowspan*50)
+        if (depth > 0){
+          delay = 100
+        }
         setTimeout(function(){
           current.container.classed('grd-cell-hidden',false);
           current.outer.classed('grd-cell-unclickable',false);
-        },500)
+          if (recurse){
+            depth++;
+            current.splitCell(recurse,depth)
+          }
+        },delay)
+
       });
     }
   }

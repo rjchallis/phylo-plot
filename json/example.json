@@ -4,7 +4,7 @@
   "visible": true,
   "width": 100,
   "range": [[0,1000]],
-  "ticks": [4],
+  "ticks": [3],
   "scalename": ["linear"],
   "aggregate": "list",
   "plotvars": [0],

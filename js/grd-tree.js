@@ -282,6 +282,7 @@ Tree.prototype.expandNode = function(ancestor){
   datasets.forEach(function(ds){
     ds = t.grid.datasets[ds]
     var cell = ds.cells[ancestor];
+    console.log('split '+ancestor)
     cell.splitCell(1)
   })
   tree[ancestor].collapsed = false
