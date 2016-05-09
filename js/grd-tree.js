@@ -358,9 +358,15 @@ Tree.prototype.drawTree = function(parent){
             if (d.hasOwnProperty('children')){
               if (!d.collapsed){
                 tree.collapseNode(d.id).drawTree()
+                tree.grid.order.forEach(function(ds_id,index){
+                  tree.grid.datasets[ds_id].drawDataset(svg,index);
+                })
               }
               else {
                 tree.expandNode(d.id).drawTree()
+                tree.grid.order.forEach(function(ds_id,index){
+                  tree.grid.datasets[ds_id].drawDataset(svg,index);
+                })
               }
             }
         })

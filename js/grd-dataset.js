@@ -26,11 +26,26 @@ var Dataset = function(json,grid){
 }
 
 Dataset.prototype.drawDataset = function(parent,index){
-  var container = parent.append('g').attr('class','grd-ds-group '+this.id).attr('transform','translate('+index*50+',0)');
+  var ds = this;
+  var container = parent.select('.grd-ds-group.'+this.id);
+  if (container.empty()){
+    container = parent.append('g').attr('class','grd-ds-group '+this.id).attr('transform','translate('+index*50+',25)');
+  }
+  this.container = container;
   var root = this.cells['root'];
   this.setScale();
-  //root.drawCell(container,1);
-  this.container = container;
+  var taxorder = this.grid.phylo.taxorder;
+  var nodes = this.grid.phylo.nodes;
+  var termini = {};
+  taxorder.forEach(function(taxon){
+    while (nodes[taxon].visible != true){
+      taxon = nodes[taxon].parent;
+    }
+    termini[taxon] = 1;
+  })
+  Object.keys(termini).forEach(function(taxon){
+    ds.cells[taxon].drawCell(container);
+  })
   return this;
 }
 
@@ -41,7 +56,7 @@ Dataset.prototype.setScale = function(scalename){
   ds.scalename.forEach(function(name,index){
     scale[index] = name == 'log' ? d3.scale.log() : name == 'sqrt' ? d3.scale.sqrt() : d3.scale.linear();'log'
     scale[index].domain(ds.range[index])
-                .range([0,100])
+                .range([0,50])
     if (name == 'radial') scale[index].range([0,2 * Math.PI])
   })
   this.scale = scale;

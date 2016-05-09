@@ -2,7 +2,6 @@ var Plot = function(id,parent,data,cell){
   this.id = id;
   this.parent = parent;
   this.data = data;
-  this.data = data;
   this.cell = cell;
   this.tip = d3.tip()
     .attr('class', 'd3-tip')
@@ -26,13 +25,17 @@ Plot.prototype.addSvg = function(){
 }
 
 Plot.prototype.addGrid = function(){
-  var svg = this.svg;
-  var g = svg.append('g').attr('class','grd-plot-ticks');
-  var ticks = this.cell.ticks;
-  var scale = this.cell.dataset.scale;
+  var plot = this;
+  var ds_group = plot.cell.dataset.container;
+  var g = ds_group.append('g').attr('class','grd-plot-ticks')
+  .attr('transform','translate(0,'+plot.data[0].ypos+25+')');
+  var ticks = plot.cell.ticks;
+  var scale = plot.cell.dataset.scale;
   var rect = g.append('rect')
-              .attr('width',100)
-              .attr('height',100);
+              .attr('width',50)
+              .attr('height',50)
+              .attr('transform','translate(0,'+plot.data[0].ypos+25+')')
+              ;
   ticks.forEach(function(count,index){
     if (count > 0){
       count = count + 1;
@@ -42,13 +45,13 @@ Plot.prototype.addGrid = function(){
           g.append('line')
            .attr('x1',scale[index](c*width))
            .attr('x2',scale[index](c*width))
-           .attr('y2',100);
+           .attr('y2',50);
         }
         else if (index == 1){
             g.append('line')
              .attr('y1',scale[index](c*width))
              .attr('y2',scale[index](c*width))
-             .attr('x2',100);
+             .attr('x2',50);
         }
       }
     }
@@ -58,30 +61,34 @@ Plot.prototype.addGrid = function(){
   return this;
 }
 
+
 Plot.prototype.plotData = function(plottype){
   // TODO - use plottype variable
   // TODO - improve styling
   var plot = this;
-  var svg = plot.svg;
-  var g = svg.append('g').attr('class','grd-plot-data');
-  var scale = this.scale;
+  var cell_group = plot.cell.cell_group;
+  var g = cell_group;
+  var scale = plot.cell.dataset.scale;
   var data = this.data;
   var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
-  var circles = g.selectAll('circle').data(data)
-  circles.enter().append('circle');
-  circles.attr('r',6)
+  var circles = g.selectAll('circle.'+plot.cell.id).data(data);
+  circles.enter().append('circle')
+         .attr('class',function(d){return plot.cell.id + ' ' + d.ancestry});
+  circles.attr('r',4)
+         .transition().duration(500)
          .attr('cx',function(d){return scale[0](d.x)})
-         .attr('cy',function(d){if (scale[1]) return 100 - scale[1](d.y); return 50})
+         .attr('cy',function(d){if (scale[1]) return 25 + d.ypos - scale[1](d.y); return d.ypos})
          .attr('rel',function(d){return d.tax})
          .style('fill',function(d){if (colours.hasOwnProperty(d.tax)) return colours[d.tax];})
-         .on('mouseover', plot.tip.show)
+  circles.on('mouseover', plot.tip.show)
          .on('mouseout', plot.tip.hide)
+
   circles.exit().remove();
   return this;
 }
 
 Plot.prototype.drawPlot = function(){
-  this.addSvg();
+  //this.addSvg();
   this.addGrid();
   this.plotData();
   return this;
