@@ -74,36 +74,50 @@ var Tree = function (grid,newick){
 Tree.prototype.layoutNodes = function(width,height){
   // TODO - walk through the tree to determine x and y positions of each node
   var tree = this.nodes;
-  var offset = {x:0,y:25};
-  var spacing = {x:25,y:50}
   width = width ? width : 300;
+  var offset = {x:width,y:25};
+  var spacing = {x:-25,y:50}
   height = height ? height : spacing.y*tree.taxorder.length-1 + 2*offset.y;
-  width = width ? width : height / 2;
   var taxon = tree.taxorder[0];
-  var nodes = {};
-  layoutNode(taxon);
+  this.nodelog = {};
+  this.width = width
+  this.height = height
+  this.offset = offset
+  this.spacing = spacing
+  this.layoutNode(taxon);
   //tree.taxorder.forEach(function(taxon,index){
-  function layoutNode(taxon){
+  return this;
+}
+
+Tree.prototype.layoutNode = function(taxon,redraw){
+  var tree = this.nodes;
+  var phylo = this;
+  var offset = this.offset;
+  var spacing = this.spacing;
+  var nodelog = this.nodelog;
     if (!tree[taxon].hasOwnProperty('children')){
-      nodes[taxon] = true;
-      tree[taxon].y = offset.y;
-      tree[taxon].x2 = offset.x + spacing.x;
-      tree[taxon].x1 = offset.x;
-      tree[taxon].y1 = offset.y;
-      tree[taxon].y2 = offset.y;
-      tree[taxon].leaf = true;
-      offset.y += spacing.y;
+      nodelog[taxon] = true;
+      if (!redraw){
+        tree[taxon].y = offset.y;
+        tree[taxon].x2 = offset.x + spacing.x;
+        tree[taxon].x1 = offset.x;
+        tree[taxon].y1 = offset.y;
+        tree[taxon].y2 = offset.y;
+        tree[taxon].leaf = true;
+        offset.y += spacing.y;
+      }
     }
     else {
       tree[taxon].descendants.forEach(function(descendant){
-        if (!nodes[descendant]){
-          layoutNode(descendant)
+        if (!nodelog[descendant]){
+          phylo.layoutNode(descendant,redraw)
         }
       })
       var y = 0;
       var miny = 99999999;
       var maxy = -1
       var maxx = -1
+      var minx = 99999999;
       var count = tree[taxon].children.length;
       for (var i = 0; i < count; i++){
         var yy = tree[tree[taxon].children[i]].y;
@@ -112,9 +126,10 @@ Tree.prototype.layoutNodes = function(width,height){
         miny = yy < miny ? yy : miny;
         maxy = yy > maxy ? yy : maxy;
         maxx = xx > maxx ? xx : maxx;
+        minx = xx < minx ? xx : minx;
       }
       for (var i = 0; i < count; i++){
-        tree[tree[taxon].children[i]].x2 = maxx;
+        tree[tree[taxon].children[i]].x2 = minx;
       }
       y = y / count;
       tree[taxon].y = y
@@ -125,18 +140,13 @@ Tree.prototype.layoutNodes = function(width,height){
     }
     if (tree[taxon].hasOwnProperty('parent')){
       var parent = tree[taxon].parent;
-      if (!nodes[parent]){
-        layoutNode(parent)
+      if (!nodelog[parent]){
+        phylo.layoutNode(parent,redraw)
       }
     }
-    return true;
+    return this;
   }
-  this.width = width
-  this.height = height
-  this.offset = offset
-  this.spacing = spacing
-  return this;
-}
+
 
 Tree.prototype.hideNode = function(node){
   var t = this;
@@ -201,54 +211,9 @@ Tree.prototype.collapseNode = function(ancestor){
     tax.y2 -= offset - t.spacing.y
   }
 
-  var nodes = {};
+  this.nodelog = {};
   var taxon = tree.taxorder[0]
-  layoutNode(taxon);
-
-
-  function layoutNode(taxon){
-    if (!tree[taxon].hasOwnProperty('children')){
-      nodes[taxon] = true;
-
-    }
-    else {
-      tree[taxon].descendants.forEach(function(descendant){
-        if (!nodes[descendant]){
-          layoutNode(descendant)
-        }
-      })
-      var y = 0;
-      var miny = 99999999;
-      var maxy = -1
-      var maxx = -1
-      var count = tree[taxon].children.length;
-      for (var i = 0; i < count; i++){
-        var yy = tree[tree[taxon].children[i]].y;
-        var xx = tree[tree[taxon].children[i]].x2;
-        y += yy;
-        miny = yy < miny ? yy : miny;
-        maxy = yy > maxy ? yy : maxy;
-        maxx = xx > maxx ? xx : maxx;
-      }
-      for (var i = 0; i < count; i++){
-        tree[tree[taxon].children[i]].x2 = maxx;
-      }
-      y = y / count;
-      tree[taxon].y = y
-      tree[taxon].y1 = miny
-      tree[taxon].y2 = maxy
-      tree[taxon].x1 = xx
-      tree[taxon].x2 = xx + t.spacing.x
-    }
-    if (tree[taxon].hasOwnProperty('parent')){
-      var parent = tree[taxon].parent;
-      if (!nodes[parent]){
-        layoutNode(parent)
-      }
-    }
-    return true;
-  }
-
+  this.layoutNode(taxon,1);
 
   return this;
 }
@@ -311,54 +276,9 @@ Tree.prototype.expandNode = function(ancestor){
     tax.y2 += offset
   }
 
-  var nodes = {};
+  this.nodelog = {};
   var taxon = tree.taxorder[0]
-  layoutNode(taxon);
-
-
-  function layoutNode(taxon){
-    if (!tree[taxon].hasOwnProperty('children')){
-      nodes[taxon] = true;
-
-    }
-    else {
-      tree[taxon].descendants.forEach(function(descendant){
-        if (!nodes[descendant]){
-          layoutNode(descendant)
-        }
-      })
-      var y = 0;
-      var miny = 99999999;
-      var maxy = -1
-      var maxx = -1
-      var count = tree[taxon].children.length;
-      for (var i = 0; i < count; i++){
-        var yy = tree[tree[taxon].children[i]].y;
-        var xx = tree[tree[taxon].children[i]].x2;
-        y += yy;
-        miny = yy < miny ? yy : miny;
-        maxy = yy > maxy ? yy : maxy;
-        maxx = xx > maxx ? xx : maxx;
-      }
-      for (var i = 0; i < count; i++){
-        tree[tree[taxon].children[i]].x2 = maxx;
-      }
-      y = y / count;
-      tree[taxon].y = y
-      tree[taxon].y1 = miny
-      tree[taxon].y2 = maxy
-      tree[taxon].x1 = xx
-      tree[taxon].x2 = xx + t.spacing.x
-    }
-    if (tree[taxon].hasOwnProperty('parent')){
-      var parent = tree[taxon].parent;
-      if (!nodes[parent]){
-        layoutNode(parent)
-      }
-    }
-    return true;
-  }
-
+  this.layoutNode(taxon,1);
 
   return this;
 }
@@ -409,8 +329,8 @@ Tree.prototype.drawTree = function(parent){
 
   vert.style('visibility',function(d){if (d.visible){return 'visible'}})
   vert.transition().duration(duration)
-        .attr('x1', function(d){return tree.width - d.x1})
-        .attr('x2', function(d){return tree.width - d.x1})
+        .attr('x1', function(d){return d.x1})
+        .attr('x2', function(d){return d.x1})
         .attr('y1', function(d){return d.y1})
         .attr('y2', function(d){return d.y2})
         .style('opacity',function(d){if (d.visible){return 1} return 0})
@@ -419,8 +339,8 @@ Tree.prototype.drawTree = function(parent){
 //  horiz.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   horiz.style('visibility',function(d){if (d.visible){return 'visible'}})
   horiz.transition().duration(duration)
-        .attr('x1', function(d){return tree.width - d.x1})
-        .attr('x2', function(d){return tree.width - d.x2})
+        .attr('x1', function(d){return d.x1})
+        .attr('x2', function(d){return d.x2})
         .attr('y1', function(d){return d.y})
         .attr('y2', function(d){return d.y})
         .style('opacity',function(d){if (d.visible){return 1} return 0})
@@ -429,7 +349,7 @@ Tree.prototype.drawTree = function(parent){
 //  handles.style('visibility',function(d){if (d.visible){return 'visible'} return 'hidden'})
   handles.style('visibility',function(d){if (d.visible){return 'visible'}})
   handles.transition().duration(duration)
-        .attr('cx', function(d){return tree.width - d.x1})
+        .attr('cx', function(d){return d.x1})
         .attr('cy', function(d){return d.y})
         .attr('r', function(d){return tree.spacing.y/8})
         .style('opacity',function(d){if (d.visible){return 1} return 0})
