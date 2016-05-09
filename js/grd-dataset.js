@@ -22,6 +22,13 @@ var Dataset = function(json,grid){
       }
     }
   })
+  this.tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+      return "<strong>Taxon:</strong> <span style='color:#fe7001'>" + d.tax + "</span>";
+    })
+
   return this;
 }
 
@@ -29,7 +36,10 @@ Dataset.prototype.drawDataset = function(parent,index){
   var ds = this;
   var container = parent.select('.grd-ds-group.'+this.id);
   if (container.empty()){
+    gridcontainer = parent.append('g').attr('class','grd-ds-grid-group '+this.id).attr('transform','translate('+index*50+',0)');
     container = parent.append('g').attr('class','grd-ds-group '+this.id).attr('transform','translate('+index*50+',25)');
+    this.gridcontainer = gridcontainer;
+    container.call(this.tip);
   }
   this.container = container;
   var root = this.cells['root'];

@@ -87,9 +87,9 @@ div {
 }
 
 .grd-plot-ticks rect {
-  stroke: #dddddd;
-  stroke-width: 0px;
-  fill: none;
+  stroke: #333333;
+  stroke-width: 2px;
+  fill: #ffffff;
 }
 
 circle {

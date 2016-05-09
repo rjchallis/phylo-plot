@@ -3,12 +3,6 @@ var Plot = function(id,parent,data,cell){
   this.parent = parent;
   this.data = data;
   this.cell = cell;
-  this.tip = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-10, 0])
-    .html(function(d) {
-      return "<strong>Taxon:</strong> <span style='color:#fe7001'>" + d.tax + "</span>";
-    })
   return this;
 }
 
@@ -20,27 +14,28 @@ Plot.prototype.addSvg = function(){
      .attr('viewBox', '0 0 ' + 100 + ' ' + 100)
      .attr('preserveAspectRatio', 'xMidYMid meet')
   this.svg = svg;
-  svg.call(this.tip);
   return this;
 }
 
 Plot.prototype.addGrid = function(){
   var plot = this;
-  var ds_group = plot.cell.dataset.container;
-  var g = ds_group.append('g').attr('class','grd-plot-ticks')
-  .attr('transform','translate(0,'+plot.data[0].ypos+25+')');
+  var ds_group = plot.cell.dataset.gridcontainer;
+  var g = ds_group.select('.grd-plot-ticks.'+plot.cell.id);
+  if (g.empty()){
+    var g = ds_group.append('g').attr('class','grd-plot-ticks '+plot.cell.id)
+  }
+  g.attr('transform','translate(0,'+plot.data[0].ypos+')');
   var ticks = plot.cell.ticks;
   var scale = plot.cell.dataset.scale;
   var rect = g.append('rect')
               .attr('width',50)
               .attr('height',50)
-              .attr('transform','translate(0,'+plot.data[0].ypos+25+')')
               ;
   ticks.forEach(function(count,index){
     if (count > 0){
       count = count + 1;
       width = Math.abs(scale[index].domain()[1]-scale[index].domain()[0]) / count;
-      for (c = 0.00001; c <= count; c++){
+      for (c = 1; c < count; c++){
         if (index == 0){
           g.append('line')
            .attr('x1',scale[index](c*width))
@@ -73,17 +68,19 @@ Plot.prototype.plotData = function(plottype){
   var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
   var circles = g.selectAll('circle.'+plot.cell.id).data(data);
   circles.enter().append('circle')
+         .style('opacity',0)
          .attr('class',function(d){return plot.cell.id + ' ' + d.ancestry});
   circles.attr('r',4)
          .transition().duration(500)
+         .style('opacity',1)
          .attr('cx',function(d){return scale[0](d.x)})
          .attr('cy',function(d){if (scale[1]) return 25 + d.ypos - scale[1](d.y); return d.ypos})
          .attr('rel',function(d){return d.tax})
          .style('fill',function(d){if (colours.hasOwnProperty(d.tax)) return colours[d.tax];})
-  circles.on('mouseover', plot.tip.show)
-         .on('mouseout', plot.tip.hide)
+  circles.on('mouseover', plot.cell.dataset.tip.show)
+         .on('mouseout', plot.cell.dataset.tip.hide)
 
-  circles.exit().remove();
+  circles.exit().transition().duration(500).style('opacity',0).remove();
   return this;
 }
 

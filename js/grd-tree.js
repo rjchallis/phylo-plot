@@ -311,7 +311,7 @@ Tree.prototype.drawTree = function(parent){
   var new_height = (tree.nodecount) * tree.spacing.y
   var new_start = (tree.tipcount - tree.nodecount) * tree.spacing.y + tree.spacing.y /2
   new_start = tree.spacing.y /2
-  svg.transition().duration(duration).attr('viewBox', -tree.width + ' ' + new_start + ' ' + (tree.width+150) + ' ' + new_height)
+  svg.transition().duration(duration).attr('viewBox', -tree.width + ' ' + (new_start-1) + ' ' + (tree.width+151) + ' ' + (new_height+2))
                                 .attr('height', new_height)
   var groups = group.selectAll('g.grd-tree-node').data(data);
   var node_g = groups.enter()
