@@ -34,8 +34,9 @@ Grid.prototype.drawGrid = function(parent_div_id){
   var grid = this;
   grid.phylo.layoutNodes()
   grid.phylo.drawTree(grd_tree_outer)
-  grid.order.forEach(function(ds_id){
+  var svg = grid.phylo.svg;
+  grid.order.forEach(function(ds_id,index){
     var ds = grid.datasets[ds_id];
-    ds.drawDataset(grd_outer);
+    ds.drawDataset(svg,index);
   })
 }

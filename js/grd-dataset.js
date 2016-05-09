@@ -25,12 +25,12 @@ var Dataset = function(json,grid){
   return this;
 }
 
-Dataset.prototype.drawDataset = function(parent){
-  var grd_ds_container = parent.append('div').attr('class','grd-ds-container '+this.id);
-  var grd_ds_outer = grd_ds_container.append('div').attr('class','grd-ds-outer '+this.id);
+Dataset.prototype.drawDataset = function(parent,index){
+  var container = parent.append('g').attr('class','grd-ds-group '+this.id).attr('transform','translate('+index*50+',0)');
   var root = this.cells['root'];
-  this.setScale()
-  root.drawCell(grd_ds_outer,1);
+  this.setScale();
+  //root.drawCell(container,1);
+  this.container = container;
   return this;
 }
 
