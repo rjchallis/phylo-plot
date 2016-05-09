@@ -75,7 +75,7 @@ Tree.prototype.layoutNodes = function(width,height){
   // TODO - walk through the tree to determine x and y positions of each node
   var tree = this.nodes;
   width = width ? width : 300;
-  var offset = {x:width,y:25};
+  var offset = {x:0,y:25};
   var spacing = {x:-25,y:50}
   height = height ? height : spacing.y*tree.taxorder.length-1 + 2*offset.y;
   var taxon = tree.taxorder[0];
@@ -179,7 +179,7 @@ Tree.prototype.collapseNode = function(ancestor){
   datasets.forEach(function(ds){
     ds = t.grid.datasets[ds]
     var cell = ds.cells[tree[ancestor].children[0]];
-    cell.collapseCell(1)
+  //  cell.collapseCell(1)
   })
   tree[ancestor].collapsed = true;
   var descendants = tree[ancestor].descendants;
@@ -247,8 +247,7 @@ Tree.prototype.expandNode = function(ancestor){
   datasets.forEach(function(ds){
     ds = t.grid.datasets[ds]
     var cell = ds.cells[ancestor];
-    console.log('split '+ancestor)
-    cell.splitCell(1)
+    //cell.splitCell(1)
   })
   tree[ancestor].collapsed = false
   var descendants = tree[ancestor].descendants;
@@ -312,7 +311,7 @@ Tree.prototype.drawTree = function(parent){
   var new_height = (tree.nodecount) * tree.spacing.y
   var new_start = (tree.tipcount - tree.nodecount) * tree.spacing.y + tree.spacing.y /2
   new_start = tree.spacing.y /2
-  svg.transition().duration(duration).attr('viewBox', '0 ' + new_start + ' ' + (tree.width+150) + ' ' + new_height)
+  svg.transition().duration(duration).attr('viewBox', -tree.width + ' ' + new_start + ' ' + (tree.width+150) + ' ' + new_height)
                                 .attr('height', new_height)
   var groups = group.selectAll('g.grd-tree-node').data(data);
   var node_g = groups.enter()
