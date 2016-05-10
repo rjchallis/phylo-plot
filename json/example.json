@@ -1,0 +1,32 @@
+{
+  "name": "Example data",
+  "id": "example",
+  "visible": true,
+  "width": 100,
+  "range": [[0,1000]],
+  "ticks": [3],
+  "scalename": ["linear"],
+  "aggregate": "list",
+  "plotvars": [0],
+  "plottype": [1],
+  "data": {
+    "Amyelois_transitella_v1": [406.468287],
+    "Bicyclus_anynana_v1x2": [475.399557],
+    "Bombyx_mori_ASM15162v1": [481.819406],
+    "Danaus_plexippus_v3": [248.564116],
+    "Heliconius_melpomene_Hmel2": [275.198613],
+    "Lerema_accius_v1x1": [298.173436],
+    "Manduca_sexta_Msex_1": [419.424771],
+    "Melitaea_cinxia": [389.907520],
+    "Operophtera_brumata_v1": [638.207720],
+    "Papilio_glaucus_v1x1": [375.987417],
+    "Papilio_machaon_Pap_ma_1": [278.421261],
+    "Papilio_polytes_Ppol_1": [227.021014],
+    "Papilio_xuthus_Pxut_1": [243.890167],
+    "Plodia_interpunctella_v1": [381.952380],
+    "Plutella_xylostella_DBM_FJ_v1x1": [393.470562]
+  },
+  "colour": {
+    "Bicyclus_anynana_v1x2":"#23d711"
+  }
+}

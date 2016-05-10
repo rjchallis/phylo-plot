@@ -1,0 +1,145 @@
+body {
+  font: 10px sans-serif;
+}
+
+div {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.grd-container {
+  position:relative;
+  height:100%;
+  width:100%;
+  overflow: auto;
+}
+
+.grd-outer {
+  position:relative;
+  height:100%;
+  width:100%;
+}
+
+.grd-tree-container {
+  position:relative;
+  float:left;
+  display:table-cell;
+  width:400px;
+  height:100%;
+}
+
+.grd-ds-container {
+  position:relative;
+  float:left;
+  display:table-cell;
+  width:50px;
+  height:100%;
+}
+
+.grd-ds-outer {
+  position:absolute;
+  height:100%;
+  width:100%;
+}
+
+.grd-cell-container {
+  width:100%;
+  margin: 0;
+  border:0px solid #555555;
+  background-color:white;
+  position:relative;
+  pointer-events:none;
+}
+
+.grd-cell-outer {
+  position:absolute;
+  height:100%;
+  width:100%;
+  border:1px solid #000000;
+  top:0px;
+  left:0px;
+  pointer-events:auto;
+}
+
+.grd-cell-nest {
+  position:absolute;
+  top:0px;
+  left:0px;
+  height:100%;
+  width:100%;
+  pointer-events:none;
+}
+
+.grd-cell-unclickable {
+  pointer-events:none;
+}
+
+.grd-cell-hidden {
+  opacity:0;
+  pointer-events:none;
+}
+
+.grd-plot-ticks line {
+  stroke: #dddddd;
+  stroke-width: 1px;
+  fill: #ffffff;
+}
+
+.grd-plot-ticks rect {
+  stroke: #333333;
+  stroke-width: 2px;
+  fill: #ffffff;
+}
+
+circle {
+  fill: #fe7001;
+}
+
+.grd-tree-line {
+  stroke: black;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill:none;
+}
+
+.grd-tree-handle {
+  stroke: black;
+  stroke-width: 2px;
+  cursor:pointer;
+}
+
+.grd-tree-handle:hover {
+  fill: #666666;
+}
+
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
