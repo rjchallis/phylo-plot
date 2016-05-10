@@ -17,17 +17,15 @@ Plot.prototype.addSvg = function(){
   return this;
 }
 
-Plot.prototype.addGrid = function(){
-  var plot = this;
+Plot.prototype.addGrid = function(selection,plot){
   var ds_group = plot.cell.dataset.gridcontainer;
-  var g = ds_group.select('.grd-plot-ticks.'+plot.cell.id);
-  if (g.empty()){
-    var g = ds_group.append('g').attr('class','grd-plot-ticks '+plot.cell.id)
-  }
-  g.attr('transform','translate(0,'+plot.data[0].ypos+')');
+  selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.cell.id + ' ' + d.ancestry});
+  selection.attr('transform','translate(0,'+plot.data[0].ypos+')')
+  .transition().duration(500)
+           .style('opacity',1)
   var ticks = plot.cell.ticks;
   var scale = plot.cell.dataset.scale;
-  var rect = g.append('rect')
+  var rect = selection.append('rect')
               .attr('width',50)
               .attr('height',50)
               ;
@@ -37,13 +35,13 @@ Plot.prototype.addGrid = function(){
       width = Math.abs(scale[index].domain()[1]-scale[index].domain()[0]) / count;
       for (c = 1; c < count; c++){
         if (index == 0){
-          g.append('line')
+          selection.append('line')
            .attr('x1',scale[index](c*width))
            .attr('x2',scale[index](c*width))
            .attr('y2',50);
         }
         else if (index == 1){
-            g.append('line')
+            selection.append('line')
              .attr('y1',scale[index](c*width))
              .attr('y2',scale[index](c*width))
              .attr('x2',50);
@@ -51,9 +49,6 @@ Plot.prototype.addGrid = function(){
       }
     }
   })
-  this.ticks = ticks;
-  this.scale = scale;
-  return this;
 }
 
 
@@ -66,6 +61,12 @@ Plot.prototype.plotData = function(plottype){
   var scale = plot.cell.dataset.scale;
   var data = this.data;
   var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
+  var ds_group = plot.cell.dataset.gridcontainer;
+  var grids = ds_group.selectAll('g.'+plot.cell.id).data(data);
+  grids.enter().append('g').style('opacity',0)
+  grids.call(plot.addGrid,plot);
+  grids.exit().transition().duration(500).style('opacity',0).remove();
+
   var circles = g.selectAll('circle.'+plot.cell.id).data(data);
   circles.enter().append('circle')
          .style('opacity',0)
@@ -81,12 +82,11 @@ Plot.prototype.plotData = function(plottype){
          .on('mouseout', plot.cell.dataset.tip.hide)
 
   circles.exit().transition().duration(500).style('opacity',0).remove();
+
   return this;
 }
 
 Plot.prototype.drawPlot = function(){
-  //this.addSvg();
-  this.addGrid();
   this.plotData();
   return this;
 }
