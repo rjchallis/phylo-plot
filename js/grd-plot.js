@@ -20,6 +20,7 @@ Plot.prototype.addSvg = function(){
 Plot.prototype.addGrid = function(selection,plot){
   selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.cell.id + ' ' + d.ancestry});
   selection.attr('transform','translate(0,'+plot.data[0].ypos+')')
+  selection.html('')
   .transition().duration(500)
            .style('opacity',1)
   var ticks = plot.cell.ticks;
