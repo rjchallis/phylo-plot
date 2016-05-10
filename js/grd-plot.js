@@ -1,8 +1,8 @@
-var Plot = function(id,parent,data,cell){
+var Plot = function(id,parent,data,dataset){
   this.id = id;
   this.parent = parent;
   this.data = data;
-  this.cell = cell;
+  this.dataset = dataset;
   return this;
 }
 
@@ -61,32 +61,76 @@ Plot.prototype.plotData = function(plottype){
   // TODO - use plottype variable
   // TODO - improve styling
   var plot = this;
-  var cell_group = plot.cell.cell_group;
-  var g = cell_group;
-  var scale = plot.cell.dataset.scale;
-  var data = this.data;
-  var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
-  var circles = g.selectAll('circle.'+plot.cell.id).data(data);
+  var g = plot.dataset.container;
+  var scale = plot.dataset.scale;
+  var data = plot.data;
+  var colours = plot.dataset.hasOwnProperty('colour') ? plot.dataset.colour : {};
+  var circles = g.selectAll('circle.'+plot.id).data(data);
   circles.enter().append('circle')
          .style('opacity',0)
-         .attr('class',function(d){return plot.cell.id + ' ' + d.ancestry});
+         .attr('class',function(d){return plot.id + ' ' + d.tax + ' ' + d.ancestry});
   circles.attr('r',4)
          .transition().duration(500)
          .style('opacity',1)
-         .attr('cx',function(d){return scale[0](d.x)})
-         .attr('cy',function(d){if (scale[1]) return 25 + d.ypos - scale[1](d.y); return d.ypos})
-         .attr('rel',function(d){return d.tax})
-         .style('fill',function(d){if (colours.hasOwnProperty(d.tax)) return colours[d.tax];})
-  circles.on('mouseover', plot.cell.dataset.tip.show)
-         .on('mouseout', plot.cell.dataset.tip.hide)
-
+         .attr('cx',function(d){return scale[0](d[0].x)})
+         .attr('cy',function(d){if (scale[1]) return 25 + d[0].ypos - scale[1](d[0].y); return d[0].ypos})
+         .attr('rel',function(d){return d[0].tax})
+         .style('fill',function(d){if (colours.hasOwnProperty(d[0].tax)) return colours[d[0].tax];})
+  circles.on('mouseover', plot.dataset.tip.show)
+         .on('mouseout', plot.dataset.tip.hide)
   circles.exit().transition().duration(500).style('opacity',0).remove();
+  return this;
+}
+
+function box (selection){
+  selection.append('circle').attr('r',10)
+}
+
+Plot.prototype.plotBoxAndWhiskers = function(plottype){
+  // TODO - use plottype variable
+  // TODO - improve styling
+  var plot = this;
+  var cell_group = plot.cell.cell_group;
+  var g = cell_group;
+  var scale = plot.cell.dataset.scale;
+  var data = [];
+  if (plot.data.length >= 3){
+    ['x','y','z'].forEach(function(axis){
+      if (plot.data[0].hasOwnProperty(axis)){
+        var datum = {}
+        var arr = plot.data.map(function(d){return d[axis]}).sort()
+        datum.mean = d3.median(arr)
+        datum.median = d3.median(arr)
+        datum.q1 = d3.quantile(arr,0.25)
+        datum.q3 = d3.quantile(arr,0.75)
+        datum.iqr = datum.q3 - datum.q1
+        datum.variance = d3.variance(arr)
+        datum.deviation = d3.deviation(arr)
+        datum.max = d3.min([d3.max(arr),(datum.mean+datum.deviation)])
+        datum.min = d3.max([d3.min(arr),(datum.mean-datum.deviation)])
+        datum.ypos = d3.min(plot.data.map(function(d){return d.ypos}))
+        data.push(datum)
+      }
+    })
+  }
+
+  var groups = g.selectAll('.box-and-whiskers').data(data);
+  groups.enter().append('g')
+         .attr('class',function(d){return plot.cell.id + ' box-and-whiskers'})
+         //.style('opacity',1);
+  groups.attr('transform',function(d){ return 'translate(0,'+(d.ypos)+')'})
+  groups.call(box)
+  //groups.transition().delay(250).duration(500)
+  //       .style('opacity',1)
+
+//  groups.exit().remove();
   return this;
 }
 
 Plot.prototype.drawPlot = function(){
   //this.addSvg();
-  this.addGrid();
+  //this.addGrid();
   this.plotData();
+  //this.plotBoxAndWhiskers();
   return this;
 }

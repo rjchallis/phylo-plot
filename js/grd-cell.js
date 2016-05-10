@@ -18,12 +18,12 @@ Cell.prototype.drawCell = function(parent,recurse){
   var cell = this;
   var ds = cell.dataset;
   cell.cell_group = parent;
-  this.prepareData();
+  this.collateData();
   this.fillCell();
   return this;
 }
 
-Cell.prototype.prepareData = function(){
+Cell.prototype.collateData = function(){
   var cell = this;
   var ds = cell.dataset;
   var ypos = cell.dataset.grid.phylo.nodes[cell.id].y;

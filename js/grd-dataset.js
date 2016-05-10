@@ -53,9 +53,14 @@ Dataset.prototype.drawDataset = function(parent,index){
     }
     termini[taxon] = 1;
   })
+  var data = [];
   Object.keys(termini).forEach(function(taxon){
-    ds.cells[taxon].drawCell(container);
+    ds.cells[taxon].collateData();
+    data.push(ds.cells[taxon].data);
   })
+  ds.plot = new Plot(ds.id,container,data,ds)
+  ds.plot.drawPlot('xy')
+  
   return this;
 }
 
