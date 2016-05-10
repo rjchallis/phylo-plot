@@ -18,7 +18,6 @@ Plot.prototype.addSvg = function(){
 }
 
 Plot.prototype.addGrid = function(selection,plot){
-  var ds_group = plot.cell.dataset.gridcontainer;
   selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.cell.id + ' ' + d.ancestry});
   selection.attr('transform','translate(0,'+plot.data[0].ypos+')')
   .transition().duration(500)
@@ -51,6 +50,14 @@ Plot.prototype.addGrid = function(selection,plot){
   })
 }
 
+Plot.prototype.plotBoxAndWhiskers = function(selection,plot){
+  selection.attr('class',function(d){return 'grd-box-group ' + plot.cell.id + ' ' + d.ancestry});
+  selection.attr('transform',function(d){return 'translate('+d+','+plot.data[0].ypos+')'})
+  .transition().duration(500)
+           .style('opacity',1)
+  selection.append('circle').attr('r',10);
+}
+
 
 Plot.prototype.plotData = function(plottype){
   // TODO - use plottype variable
@@ -62,14 +69,13 @@ Plot.prototype.plotData = function(plottype){
   var data = this.data;
   var colours = this.cell.dataset.hasOwnProperty('colour') ? this.cell.dataset.colour : {};
   var ds_group = plot.cell.dataset.gridcontainer;
-  var grids = ds_group.selectAll('g.'+plot.cell.id).data(data);
+  var grids = ds_group.selectAll('.grd-plot-ticks.'+plot.cell.id).data([data[0]]);
   grids.enter().append('g').style('opacity',0)
   grids.call(plot.addGrid,plot);
   grids.exit().transition().duration(500).style('opacity',0).remove();
 
   var circles = g.selectAll('circle.'+plot.cell.id).data(data);
-  circles.enter().append('circle')
-         .style('opacity',0)
+  circles.enter().append('circle').style('opacity',0)
          .attr('class',function(d){return plot.cell.id + ' ' + d.ancestry});
   circles.attr('r',4)
          .transition().duration(500)
@@ -82,6 +88,17 @@ Plot.prototype.plotData = function(plottype){
          .on('mouseout', plot.cell.dataset.tip.hide)
 
   circles.exit().transition().duration(500).style('opacity',0).remove();
+
+  //if (data.length >= 3){
+    data = [d3.mean(data.map(function(x){return x.x ? x.x : 0}))]
+  //}
+  //else {
+  //  data = []
+  //}
+    var boxes = g.selectAll('.grd-box-group.'+plot.cell.id).data(data);
+    boxes.enter().append('g').style('opacity',0)
+    //boxes.call(plot.plotBoxAndWhiskers,plot);
+    boxes.exit().transition().duration(500).style('opacity',0).remove();
 
   return this;
 }
