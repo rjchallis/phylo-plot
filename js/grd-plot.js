@@ -61,13 +61,62 @@ Plot.prototype.addGrid = function(selection,plot){
   })
 }
 
-Plot.prototype.plotBoxAndWhiskers = function(selection,plot){
-  selection.attr('class',function(d){return 'grd-box-group ' + plot.cell.id});
-  selection.attr('transform',function(d){return 'translate('+d+','+plot.data[0].ypos+')'})
+Plotds.prototype.plotSummary = function(parameter){
+
+  var plot = this;
+  var ds = plot.dataset;
+  var g = ds.container;
+  var scale = ds.scale;
+  var data = plot.data;
+
+  var selection = g.selectAll('.grd-summary-group.'+plot.members.join(', .grd-summary-group.')).data(data);
+  selection.enter().append('g').attr('transform',function(d){return 'translate(0,'+d.ypos+')'}).style('opacity',0).append('line').attr('y1',-10).attr('y2',10)
+  //selection.call(plot.plotBoxAndWhiskers,plot);
+  selection.attr('class',function(d){return 'grd-summary-group ' + plot.id});
+  selection.transition().delay(0).duration(500).attr('transform',function(d){return 'translate('+scale[0](d.mean)+','+d.ypos+')'})
+       .style('opacity',1)
+
+    selection.exit().transition().duration(500).attr('transform',function(d){return 'translate(0,'+d.ypos+')'}).style('opacity',0).remove();
+
+
+
+}
+
+
+Plotds.prototype.addGrid = function(selection,plot){
+  selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.id});
+  selection.attr('transform','translate(0,'+plot.data[0].ypos+')')
+  selection.html('')
   .transition().duration(500)
            .style('opacity',1)
-  selection.append('circle').attr('r',10);
+  var ticks = plot.dataset.ticks;
+  var scale = plot.dataset.scale;
+  var rect = selection.append('rect')
+              .attr('width',50)
+              .attr('height',50)
+              ;
+  ticks.forEach(function(count,index){
+    if (count > 0){
+      count = count + 1;
+      width = Math.abs(scale[index].domain()[1]-scale[index].domain()[0]) / count;
+      for (c = 1; c < count; c++){
+        if (index == 0){
+          selection.append('line')
+           .attr('x1',scale[index](c*width))
+           .attr('x2',scale[index](c*width))
+           .attr('y2',50);
+        }
+        else if (index == 1){
+            selection.append('line')
+             .attr('y1',scale[index](c*width))
+             .attr('y2',scale[index](c*width))
+             .attr('x2',50);
+        }
+      }
+    }
+  })
 }
+
 
 
 Plot.prototype.plotData = function(plottype){
@@ -114,6 +163,8 @@ Plot.prototype.plotData = function(plottype){
   return this;
 }
 
+
+
 Plotds.prototype.plotData = function(plottype){
   // TODO - use plottype variable
   // TODO - improve styling
@@ -124,10 +175,10 @@ Plotds.prototype.plotData = function(plottype){
   var data = plot.data;
   var colours = ds.hasOwnProperty('colour') ? ds.colour : {};
   var ds_group = ds.gridcontainer;
-  var grids = ds_group.selectAll('.grd-plot-ticks.'+plot.members.join('.')).data([data[0]]);
-  grids.enter().append('g').style('opacity',0)
+  //var grids = ds_group.selectAll('.grd-plot-ticks.'+plot.members.join('.')).data([data[0]]);
+  //grids.enter().append('g').style('opacity',0)
   //grids.call(plot.addGrid,plot);
-  grids.exit().transition().duration(500).style('opacity',0).remove();
+  //grids.exit().transition().duration(500).style('opacity',0).remove();
   var circles = g.selectAll('circle.'+plot.members.join(', circle.')).data(data);
   circles.enter().append('circle').style('opacity',0)
          .attr('class',function(d){return d.tax});
@@ -143,16 +194,6 @@ Plotds.prototype.plotData = function(plottype){
 
   circles.exit().transition().duration(500).style('opacity',0).remove();
 
-  //if (data.length >= 3){
-    data = [d3.mean(data.map(function(x){return x.x ? x.x : 0}))]
-  //}
-  //else {
-  //  data = []
-  //}
-    var boxes = g.selectAll('.grd-box-group.'+plot.members.join('.')).data(data);
-    boxes.enter().append('g').style('opacity',0)
-    //boxes.call(plot.plotBoxAndWhiskers,plot);
-    boxes.exit().transition().duration(500).style('opacity',0).remove();
 
   return this;
 }

@@ -24,7 +24,7 @@ Cell.prototype.drawCell = function(parent,recurse){
   return this;
 }
 
-Cell.prototype.prepareData = function(){
+Cell.prototype.prepareData = function(node){
   var cell = this;
   var ds = cell.dataset;
   var ypos = cell.dataset.grid.phylo.nodes[cell.id].y;
@@ -50,6 +50,9 @@ Cell.prototype.prepareData = function(){
       }
     })
   })
+  var summary = {'ypos':ypos};
+  summary.mean = d3.mean(data,function(d){return d.x})
+  this.summary = data.length >= 2 ? [summary] : [];
   this.data = data;
   return this;
 }

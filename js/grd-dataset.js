@@ -91,13 +91,17 @@ Dataset.prototype.drawDataset = function(parent,index){
     })
     Object.keys(collections).forEach(function(node){
       var data = [];
+      var summary = [];
       collections[node].forEach(function(taxon){
         ds.cells[taxon].prepareData();
         data = data.concat(ds.cells[taxon].data)
+        summary = summary.concat(ds.cells[taxon].summary)
       })
       var members = termini[node] ? termini[node] : ds.termini[node]
       var plot = new Plotds(node,ds.container,data,ds,members)
       plot.plotData('xy');
+      var splot = new Plotds(node,ds.container,summary,ds,members)
+      splot.plotSummary('xy');
     })
   }
   else {

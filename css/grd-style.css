@@ -86,6 +86,12 @@ div {
   fill: #ffffff;
 }
 
+.grd-summary-group line {
+  stroke: #333333;
+  stroke-width: 3px;
+  fill: #ffffff;
+}
+
 .grd-plot-ticks rect {
   stroke: #333333;
   stroke-width: 2px;
