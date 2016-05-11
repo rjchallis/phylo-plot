@@ -92,23 +92,29 @@ Dataset.prototype.drawDataset = function(parent,index){
     Object.keys(collections).forEach(function(node){
       var data = [];
       var summary = [];
+      var grid = [];
       collections[node].forEach(function(taxon){
         ds.cells[taxon].prepareData();
         data = data.concat(ds.cells[taxon].data)
+        grid = grid.concat([ds.cells[taxon].data[0]])
         summary = summary.concat(ds.cells[taxon].summary)
       })
       var members = termini[node] ? termini[node] : ds.termini[node]
-      var plot = new Plotds(node,ds.container,data,ds,members)
+      var plot = new Plot(node,ds.container,data,ds,members)
       plot.plotData('xy');
-      var splot = new Plotds(node,ds.container,summary,ds,members)
+      var splot = new Plot(node,ds.container,summary,ds,members)
       splot.plotSummary('xy');
+      var gplot = new Plot(node,ds.container,grid,ds,members)
+      gplot.plotGrid();
     })
   }
   else {
     Object.keys(termini).forEach(function(taxon){
       ds.cells[taxon].prepareData();
-      ds.cells[taxon].cell_group = container;
-      ds.cells[taxon].fillCell();
+      var plot = new Plot(taxon,ds.container,ds.cells[taxon].data,ds,[])
+      plot.plotData();
+      var gplot = new Plot(taxon,ds.container,[ds.cells[taxon].data[0]],ds,[])
+      gplot.plotGrid();
     })
   }
   ds.termini = termini;

@@ -1,4 +1,4 @@
-var Plot = function(id,parent,data,cell){
+var Plotx = function(id,parent,data,cell){
   this.id = id;
   this.parent = parent;
   this.data = data;
@@ -6,7 +6,7 @@ var Plot = function(id,parent,data,cell){
   return this;
 }
 
-var Plotds = function(id,parent,data,dataset,members){
+var Plot = function(id,parent,data,dataset,members){
   this.id = id;
   this.parent = parent;
   this.data = data;
@@ -27,7 +27,7 @@ Plot.prototype.addSvg = function(){
   return this;
 }
 
-Plot.prototype.addGrid = function(selection,plot){
+Plotx.prototype.addGrid = function(selection,plot){
   selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.cell.id});
   selection.attr('transform','translate(0,'+plot.data[0].ypos+')')
   selection.html('')
@@ -61,7 +61,7 @@ Plot.prototype.addGrid = function(selection,plot){
   })
 }
 
-Plotds.prototype.plotSummary = function(parameter){
+Plot.prototype.plotSummary = function(parameter){
 
   var plot = this;
   var ds = plot.dataset;
@@ -83,7 +83,49 @@ Plotds.prototype.plotSummary = function(parameter){
 }
 
 
-Plotds.prototype.addGrid = function(selection,plot){
+Plot.prototype.addGrid = function(selection,plot){
+
+    var ds = plot.dataset;
+    var g = ds.container;
+    var scale = ds.scale;
+    var ticks = plot.dataset.ticks;
+    var scale = plot.dataset.scale;
+
+    var selenter = selection.enter().append('g').attr('transform',function(d){return 'translate(0,'+d.ypos+')'}).style('opacity',0)
+    selenter.append('rect')
+                .attr('width',50)
+                .attr('height',50)
+                //.transition().delay(0).duration(1500).attr('height',50)
+    //selection.call(plot.plotBoxAndWhiskers,plot);
+    selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.id});
+    selection.transition().delay(0).duration(500).attr('transform',function(d){return 'translate(0,'+d.ypos+')'})
+         .style('opacity',1)
+
+      selection.exit().transition().duration(500).style('opacity',0).remove();
+
+    ticks.forEach(function(count,index){
+      if (count > 0){
+        count = count + 1;
+        width = Math.abs(scale[index].domain()[1]-scale[index].domain()[0]) / count;
+        for (c = 1; c < count; c++){
+          if (index == 0){
+            selenter.append('line')
+             .attr('x1',scale[index](c*width))
+             .attr('x2',scale[index](c*width))
+             .attr('y2',50);
+          }
+          else if (index == 1){
+              selenter.append('line')
+               .attr('y1',scale[index](c*width))
+               .attr('y2',scale[index](c*width))
+               .attr('x2',50);
+          }
+        }
+      }
+    })
+
+console.log('here')
+/*
   selection.attr('class',function(d){return 'grd-plot-ticks ' + plot.id});
   selection.attr('transform','translate(0,'+plot.data[0].ypos+')')
   selection.html('')
@@ -114,12 +156,12 @@ Plotds.prototype.addGrid = function(selection,plot){
         }
       }
     }
-  })
+  })*/
 }
 
 
 
-Plot.prototype.plotData = function(plottype){
+Plotx.prototype.plotData = function(plottype){
   // TODO - use plottype variable
   // TODO - improve styling
   var plot = this;
@@ -165,7 +207,26 @@ Plot.prototype.plotData = function(plottype){
 
 
 
-Plotds.prototype.plotData = function(plottype){
+Plot.prototype.plotGrid = function(plottype){
+  // TODO - use plottype variable
+  // TODO - improve styling
+  var plot = this;
+  var ds = plot.dataset;
+  var g = ds.container;
+  var scale = ds.scale;
+  var data = plot.data;
+  plot.members.unshift(plot.id)
+  var colours = ds.hasOwnProperty('colour') ? ds.colour : {};
+  var ds_group = ds.gridcontainer;
+  var grids = ds_group.selectAll('.grd-plot-ticks.'+plot.members.join(', .grd-plot-ticks.')).data(data);
+  //grids.enter().append('g').style('opacity',0)
+  grids.call(plot.addGrid,plot);
+
+  return this;
+}
+
+
+Plot.prototype.plotData = function(plottype){
   // TODO - use plottype variable
   // TODO - improve styling
   var plot = this;
@@ -175,7 +236,7 @@ Plotds.prototype.plotData = function(plottype){
   var data = plot.data;
   var colours = ds.hasOwnProperty('colour') ? ds.colour : {};
   var ds_group = ds.gridcontainer;
-  //var grids = ds_group.selectAll('.grd-plot-ticks.'+plot.members.join('.')).data([data[0]]);
+  //var grids = ds_group.selectAll('.grd-plot-ticks.'+plot.members.join(', .grd-plot-ticks.')).data(data);
   //grids.enter().append('g').style('opacity',0)
   //grids.call(plot.addGrid,plot);
   //grids.exit().transition().duration(500).style('opacity',0).remove();
@@ -195,10 +256,5 @@ Plotds.prototype.plotData = function(plottype){
   circles.exit().transition().duration(500).style('opacity',0).remove();
 
 
-  return this;
-}
-
-Plot.prototype.drawPlot = function(){
-  this.plotData();
   return this;
 }
