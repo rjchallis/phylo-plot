@@ -4,13 +4,14 @@ var Cell = function(id,data,parent,dataset,rowspan){
   this.parent = parent;
   this.dataset = dataset;
   this.rowspan = rowspan
-  this.ancestry = [];
   var taxon = id;
   var nodes = dataset.grid.phylo.nodes;
+  this.ancestry = [];//nodes[taxon].alldescendants ? nodes[taxon].alldescendants : [];
   while (taxon != 'root'){
-    taxon = nodes[taxon].parent;
     this.ancestry.push(taxon);
+    taxon = nodes[taxon].parent;
   }
+  this.ancestry.push('root');
   return this;
 }
 

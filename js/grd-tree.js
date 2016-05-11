@@ -33,6 +33,7 @@ var Tree = function (grid,newick){
         if (node.match('NODE')){
           tree[node].children = children[node]
           tree[node].descendants = list_descendants(children,node)
+          tree[node].alldescendants = list_descendants(children,node,1)
         }
         if (labels.hasOwnProperty(node)){
           tree[node].label = labels[node]
@@ -51,17 +52,19 @@ var Tree = function (grid,newick){
                      }
     tree['root'].children = children['NODE'+i]
     tree['root'].descendants = list_descendants(children,'NODE'+i)
+    tree['root'].alldescendants = list_descendants(children,'NODE'+i,1)
     tree.taxorder = tree['root'].descendants;
     return tree;
   }
 
-  function list_descendants (object,key){
+  function list_descendants (object,key,flag){
     var desc = []
     if (object.hasOwnProperty(key)){
       var children = object[key];
       children.forEach(function(subkey){
-        desc = desc.concat(list_descendants(object,subkey));
+        desc = desc.concat(list_descendants(object,subkey,flag));
       })
+      if (flag) desc.push(key)
     }
     else {
       desc.push(key)

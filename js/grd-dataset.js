@@ -68,11 +68,46 @@ Dataset.prototype.drawDataset = function(parent,index){
       termini[par] = taxa.slice(0);
     }
   })
-  Object.keys(termini).forEach(function(taxon){
-    ds.cells[taxon].drawCell(container);
-    console.log(taxon+' '+JSON.stringify(termini[taxon]))
-  })
-  this.termini = termini;
+  if (ds.termini){
+    // group data for smooth enter, update, exit transitions when expanding
+    var collections = {};
+    Object.keys(termini).forEach(function(taxon){
+      ds.cells[taxon].prepareData();
+      ds.cells[taxon].cell_group = container;
+      var ancestry = ds.cells[taxon].ancestry;
+      var found = false;
+      for (var i = 0; i < ancestry.length; i++){
+        if (ds.termini[ancestry[i]]){//} && ancestry[i] != taxon){
+          if (!collections.hasOwnProperty(ancestry[i])) collections[ancestry[i]] = []
+          collections[ancestry[i]].push(taxon)
+          found = true;
+          break;
+        }
+      }
+      if (!found){
+        if (!collections.hasOwnProperty(taxon)) collections[taxon] = []
+        collections[taxon].push(taxon)
+      }
+    })
+    Object.keys(collections).forEach(function(node){
+      var data = [];
+      collections[node].forEach(function(taxon){
+        ds.cells[taxon].prepareData();
+        data = data.concat(ds.cells[taxon].data)
+      })
+      var members = termini[node] ? termini[node] : ds.termini[node]
+      var plot = new Plotds(node,ds.container,data,ds,members)
+      plot.plotData('xy');
+    })
+  }
+  else {
+    Object.keys(termini).forEach(function(taxon){
+      ds.cells[taxon].prepareData();
+      ds.cells[taxon].cell_group = container;
+      ds.cells[taxon].fillCell();
+    })
+  }
+  ds.termini = termini;
   return this;
 }
 
