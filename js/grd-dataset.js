@@ -50,14 +50,12 @@ Dataset.prototype.drawDataset = function(parent,index){
   taxorder.forEach(function(taxon){
     var par = taxon;
     var taxa = [];
-    if (nodes[par].visible == true){
-      taxa.push(par);
-    }
-    else {
       while (nodes[par].visible != true){
         taxa.push(par);
         par = nodes[par].parent;
       }
+    if (nodes[par].visible == true){
+      taxa.push(par);
     }
     if (termini.hasOwnProperty(par)){
       taxa.forEach(function(tax){
