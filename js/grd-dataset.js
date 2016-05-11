@@ -48,14 +48,33 @@ Dataset.prototype.drawDataset = function(parent,index){
   var nodes = this.grid.phylo.nodes;
   var termini = {};
   taxorder.forEach(function(taxon){
-    while (nodes[taxon].visible != true){
-      taxon = nodes[taxon].parent;
+    var par = taxon;
+    var taxa = [];
+    if (nodes[par].visible == true){
+      taxa.push(par);
     }
-    termini[taxon] = 1;
+    else {
+      while (nodes[par].visible != true){
+        taxa.push(par);
+        par = nodes[par].parent;
+      }
+    }
+    if (termini.hasOwnProperty(par)){
+      taxa.forEach(function(tax){
+        if (termini[par].indexOf(tax) == -1){
+          termini[par].push(tax);
+        }
+      })
+    }
+    else {
+      termini[par] = taxa.slice(0);
+    }
   })
   Object.keys(termini).forEach(function(taxon){
     ds.cells[taxon].drawCell(container);
+    console.log(taxon+' '+JSON.stringify(termini[taxon]))
   })
+  this.termini = termini;
   return this;
 }
 
