@@ -29,10 +29,17 @@ Plot.prototype.plotSummary = function(parameter){
   var data = plot.data;
 
   var selection = g.selectAll('.grd-summary-group.'+plot.members.join(', .grd-summary-group.')).data(data);
-  selection.enter().append('g').attr('transform',function(d){return 'translate(0,'+d.ypos+')'}).style('opacity',0).append('line').attr('y1',-10).attr('y2',10)
+  var selenter = selection.enter().append('g').attr('transform',function(d){return 'translate(0,'+d.ypos+')'}).style('opacity',0);
+  selenter.append('line').attr('y1',-20).attr('y2',20);
+  if(ds.plotvars.length > 1){
+    selenter.append('line').attr('x1',function(d){return (5- scale[0](d.x.mean))})
+                           .attr('x2',function(d){return (45 - scale[0](d.x.mean))})
+                           .attr('y1',function(d){return (25 - scale[1](d.y.mean))})
+                           .attr('y2',function(d){return (25 - scale[1](d.y.mean))});
+  }
   //selection.call(plot.plotBoxAndWhiskers,plot);
   selection.attr('class',function(d){return 'grd-summary-group ' + plot.id});
-  selection.transition().delay(0).duration(500).attr('transform',function(d){return 'translate('+scale[0](d.mean)+','+d.ypos+')'})
+  selection.transition().delay(0).duration(500).attr('transform',function(d){return 'translate('+scale[0](d.x.mean)+','+d.ypos+')'})
        .style('opacity',1)
 
     selection.exit().transition().duration(500).attr('transform',function(d){return 'translate(0,'+d.ypos+')'}).style('opacity',0).remove();

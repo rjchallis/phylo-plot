@@ -50,8 +50,12 @@ Cell.prototype.prepareData = function(node){
       }
     })
   })
-  var summary = {'ypos':ypos};
-  summary.mean = d3.mean(data,function(d){return d.x})
+  var summary = {'ypos':ypos,'x':{}};
+  summary.x.mean = d3.mean(data,function(d){return d.x})
+  if (dimensions == 2){
+    summary.y = {};
+    summary.y.mean = d3.mean(data,function(d){return d.y})
+  }
   this.summary = data.length >= 2 ? [summary] : [];
   this.data = data;
   return this;

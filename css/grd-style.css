@@ -88,8 +88,8 @@ div {
 
 .grd-summary-group line {
   stroke: #333333;
-  stroke-width: 3px;
-  fill: #ffffff;
+  stroke-width: 1px;
+  opacity: 1;
 }
 
 .grd-plot-ticks rect {
